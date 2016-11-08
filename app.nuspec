@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+	<metadata>
+		<id>CommandWrapper</id>
+		<version>1.0</version>
+		<authors>Zach Deibert</authors>
+		<owners>zachdeibert</owners>
+		<licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+		<projectUrl>https://github.com/zachdeibert/command-wrapper/</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<releaseNotes></releaseNotes>
+		<description>A .NET application that allows more control over the launch of another process</description>
+		<copyright>Copyright (c) 2016 Zach Deibert</copyright>
+		<tags>utility</tags>
+	</metadata>
+	<files>
+		<file src="bin/Release/command-wrapper.exe" target="bin" />
+	</files>
+</package>

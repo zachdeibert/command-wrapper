@@ -20,7 +20,7 @@ namespace commandwrapper {
 				if ( parts.Length == 1 ) {
 					psi.EnvironmentVariables.Remove(args[i]);
 				} else {
-					psi.EnvironmentVariables[args[0]] = args[1];
+					psi.EnvironmentVariables[parts[0]] = parts[1];
 				}
 			}
 			// Parse the command
@@ -30,6 +30,8 @@ namespace commandwrapper {
 			psi.RedirectStandardInput = false;
 			psi.RedirectStandardOutput = false;
 			psi.UseShellExecute = false;
+			// Extra stuff
+			AskCommand.Process(psi);
 			// Launch the process
 			using ( Process proc = Process.Start(psi) ) {
 				proc.WaitForExit();

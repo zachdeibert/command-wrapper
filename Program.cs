@@ -5,8 +5,7 @@ using System.Linq;
 
 namespace commandwrapper {
 	class MainClass {
-		// Usage: command-wrapper.exe ENVNAME1=ENVVAL1 ENVNAME2=ENVVAL2 ... -- PROGRAM ARG1 ARG2
-		public static void Main(string[] args) {
+		public static int Run(string[] args) {
 			ProcessStartInfo psi = new ProcessStartInfo();
 			// Copy this process's environment
 			psi.EnvironmentVariables.Clear();
@@ -35,8 +34,13 @@ namespace commandwrapper {
 			// Launch the process
 			using ( Process proc = Process.Start(psi) ) {
 				proc.WaitForExit();
-				Environment.ExitCode = proc.ExitCode;
+				return proc.ExitCode;
 			}
+		}
+
+		// Usage: command-wrapper.exe ENVNAME1=ENVVAL1 ENVNAME2=ENVVAL2 ... -- PROGRAM ARG1 ARG2
+		public static void Main(string[] args) {
+			Environment.ExitCode = Run(args);
 		}
 	}
 }

@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace commandwrapper {
+namespace Com.GitHub.ZachDeibert.CommandWrapper {
 	public class CommandTask : Task {
 		[Required]
 		public string Command {

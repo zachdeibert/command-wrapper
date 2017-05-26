@@ -5,10 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{9D7D5BC2-DB7B-47BC-AFF3-557BDBDF2EFD}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>commandwrapper</RootNamespace>
+    <RootNamespace>Com.GitHub.ZachDeibert.CommandWrapper</RootNamespace>
     <AssemblyName>command-wrapper</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <ReleaseVersion>1.6</ReleaseVersion>
+    <StartupObject>Com.GitHub.ZachDeibert.CommandWrapper.MainClass</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -49,6 +50,7 @@
     <Compile Include="AskForm.cs" />
     <Compile Include="AskCommand.cs" />
     <Compile Include="CommandTask.cs" />
+    <Compile Include="Obsolete.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

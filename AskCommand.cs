@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace commandwrapper {
+namespace Com.GitHub.ZachDeibert.CommandWrapper {
 	public static class AskCommand {
 		public static string ShowDialog(string prompt, out bool remember) {
 			using ( AskForm form = new AskForm(prompt) ) {

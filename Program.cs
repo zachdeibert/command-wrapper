@@ -3,8 +3,8 @@ using System.Collections;
 using System.Diagnostics;
 using System.Linq;
 
-namespace commandwrapper {
-	class MainClass {
+namespace Com.GitHub.ZachDeibert.CommandWrapper {
+	static class MainClass {
 		public static int Run(string[] args) {
 			ProcessStartInfo psi = new ProcessStartInfo();
 			// Copy this process's environment

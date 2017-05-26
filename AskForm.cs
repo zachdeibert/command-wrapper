@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace commandwrapper {
+namespace Com.GitHub.ZachDeibert.CommandWrapper {
 	public class AskForm : Form {
 		private TextBox Input;
 		private CheckBox RememberBox;

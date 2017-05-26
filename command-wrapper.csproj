@@ -54,7 +54,6 @@
     <Compile Include="AskForm.cs" />
     <Compile Include="AskCommand.cs" />
     <Compile Include="CommandTask.cs" />
-    <Compile Include="Obsolete.cs" />
     <Compile Include="NuGetExtensions.cs" />
     <Compile Include="Model\NuSpecFile.cs" />
     <Compile Include="Model\NuGetMetaData.cs" />

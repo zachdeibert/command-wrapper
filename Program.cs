@@ -31,6 +31,7 @@ namespace Com.GitHub.ZachDeibert.CommandWrapper {
 			psi.UseShellExecute = false;
 			// Extra stuff
 			AskCommand.Process(psi);
+			NuGetExtensions.Process(psi);
 			// Launch the process
 			using ( Process proc = Process.Start(psi) ) {
 				proc.WaitForExit();

@@ -43,6 +43,10 @@
     <Reference Include="System.Drawing" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
     <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -51,9 +55,26 @@
     <Compile Include="AskCommand.cs" />
     <Compile Include="CommandTask.cs" />
     <Compile Include="Obsolete.cs" />
+    <Compile Include="NuGetExtensions.cs" />
+    <Compile Include="Model\NuSpecFile.cs" />
+    <Compile Include="Model\NuGetMetaData.cs" />
+    <Compile Include="Model\NuGetDependency.cs" />
+    <Compile Include="PatchedXmlTextReader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <None Include="app.nuspec" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Model\" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <DotNetNamingPolicy DirectoryNamespaceAssociation="PrefixedHierarchical" ResourceNamePolicy="FileFormatDefault" />
+        </Policies>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>

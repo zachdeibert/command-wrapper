@@ -15,6 +15,6 @@ Global
 		{9D7D5BC2-DB7B-47BC-AFF3-557BDBDF2EFD}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		version = 1.4
+		version = 1.6
 	EndGlobalSection
 EndGlobal

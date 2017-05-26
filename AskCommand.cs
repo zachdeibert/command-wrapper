@@ -61,7 +61,7 @@ namespace commandwrapper {
 						}
 					}
 				}
-				psi.Arguments = string.Join(" ", args);
+				psi.Arguments = string.Join(" ", args.Select(s => string.Format("\"{0}\"", s)));
 			}
 		}
 	}

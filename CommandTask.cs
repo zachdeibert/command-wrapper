@@ -16,8 +16,13 @@ namespace commandwrapper {
 		}
 
 		public override bool Execute() {
-			Environment.CurrentDirectory = WorkingDirectory;
-			return MainClass.Run(Command.Split(' ')) == 0;
+			string oldcwd = Environment.CurrentDirectory;
+			try {
+				Environment.CurrentDirectory = WorkingDirectory;
+				return MainClass.Run(Command.Split(' ')) == 0;
+			} finally {
+				Environment.CurrentDirectory = oldcwd;
+			}
 		}
 	}
 }

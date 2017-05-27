@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 #if DEBUG
 using System.Text;
 #endif
@@ -49,14 +50,6 @@ namespace Com.GitHub.ZachDeibert.CommandWrapper {
 #endif
 		}
 
-		private static IEnumerable<string> FindBinaryDirs(string dir) {
-			IEnumerable<string> dirs = new string [0];
-			if (Directory.GetFiles(dir).Any(f => f.EndsWith(".exe") || f.EndsWith(".dll"))) {
-				dirs = new [] { dir };
-			}
-			return dirs.Concat(Directory.GetDirectories(dir).SelectMany(d => FindBinaryDirs(d)));
-		}
-
 		private static string AggregatePaths(string a, string b) {
 			switch (Environment.OSVersion.Platform) {
 				case PlatformID.MacOSX:
@@ -65,6 +58,41 @@ namespace Com.GitHub.ZachDeibert.CommandWrapper {
 				default:
 					return string.Concat(a, ";", b);
 			}
+		}
+
+		private static IEnumerable<string> FindDlls(string dir) {
+			IEnumerable<string> dlls = new string[0];
+			string lib = Path.Combine(dir, "lib");
+			if (Directory.Exists(lib)) {
+				if (Directory.GetFiles(lib).Any(f => f.EndsWith(".dll"))) {
+					dlls = Directory.GetFiles(lib).Where(f => f.EndsWith(".dll"));
+				}
+				List<string> nonNets = new List<string>();
+				int highestNet = -1;
+				foreach (string subdir in Directory.GetDirectories(lib).Select(d => Path.GetFileName(d))) {
+					int net;
+					if (subdir.StartsWith("net")) {
+						if (int.TryParse(subdir.Substring(3), out net)) {
+							highestNet = Math.Max(highestNet, net);
+							continue;
+						}
+					} else if (int.TryParse(subdir, out net)) {
+						highestNet = Math.Max(highestNet, net);
+						continue;
+					}
+					nonNets.Add(subdir);
+				}
+				if (highestNet > 0) {
+					string d = Path.Combine(lib, string.Concat("net", highestNet.ToString()));
+					if (!Directory.Exists(d)) {
+						d = Path.Combine(lib, highestNet.ToString());
+					}
+					dlls = dlls.Concat(Directory.GetFiles(d).Where(f => f.EndsWith(".dll")));
+				} else {
+					dlls = dlls.Concat(nonNets.SelectMany(d => Directory.GetFiles(Path.Combine(lib, d))).Where(f => f.EndsWith(".dll")));
+				}
+			}
+			return dlls;
 		}
 
 		public static void Process(ProcessStartInfo psi) {
@@ -81,7 +109,10 @@ namespace Com.GitHub.ZachDeibert.CommandWrapper {
 					string packageId = Path.GetFileName(dir);
 					BuildDependencyTree(packagesDir, packageId, dependencies);
 					dependencies.Remove(packageId);
-					IEnumerable<string> newPath = dependencies.SelectMany(p => FindBinaryDirs(Path.Combine(packagesDir, p)));
+					IEnumerable<string> newPath = dependencies.SelectMany(p => FindDlls(Path.Combine(packagesDir, p))
+															  .Select(d => Path.GetDirectoryName(d))
+															  .GroupBy(s => s)
+															  .Select(g => g.Key));
 					if (psi.EnvironmentVariables.ContainsKey("PATH")) {
 						psi.EnvironmentVariables["PATH"] = new [] { psi.EnvironmentVariables["PATH"] }.Concat(newPath).Aggregate(AggregatePaths);
 					} else {
@@ -95,6 +126,87 @@ namespace Com.GitHub.ZachDeibert.CommandWrapper {
 #if DEBUG
 					Console.WriteLine(psi.EnvironmentVariables["PATH"]);
 #endif
+					string configFile = string.Concat(psi.FileName, ".config");
+					string realConfigFile = string.Concat(configFile, ".real");
+					XmlSerializer serializer = new XmlSerializer(typeof(ApplicationConfiguration));
+					if (File.Exists(configFile)) {
+						ApplicationConfiguration config;
+						using (Stream stream = File.OpenRead(configFile)) {
+							config = (ApplicationConfiguration) serializer.Deserialize(stream);
+						}
+						if (config.Settings != null
+						    && config.Settings.Wrapper != null
+						    && config.Settings.Wrapper.Generated != null
+						    && config.Settings.Wrapper.Generated.Name == "generated"
+						    && config.Settings.Wrapper.Generated.Value == "true") {
+							File.Delete(configFile);
+						} else {
+							if (File.Exists(realConfigFile)) {
+								File.Delete(realConfigFile);
+							}
+							File.Move(configFile, realConfigFile);
+						}
+					}
+					{
+						ApplicationConfiguration config = new ApplicationConfiguration() {
+							Sections = new List<ConfigurationSectionGroup>(new [] {
+								new ConfigurationSectionGroup() {
+									Name = "applicationSettings",
+									Type = "System.Configuration.ApplicationSettingsGroup, System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+									Sections = new List<ConfigurationSection>(new [] {
+										new ConfigurationSection() {
+											Name = "Com.GitHub.ZachDeibert.CommandWrapper",
+											Type = "System.Configuration.ClientSettingsSection, System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+										}
+									})
+								}
+							}),
+							Settings = new ApplicationSettings() {
+								Wrapper = new WrapperSettings() {
+									Generated = new ApplicationSetting() {
+										Name = "generated",
+										SerializeAs = "String",
+										Value = "true"
+									}
+								}
+							},
+							Runtime = new RuntimeConfiguration() {
+								Assemblies = dependencies.SelectMany(p => FindDlls(Path.Combine(packagesDir, p)))
+														 .Select(d => {
+															 try {
+																 return Assembly.LoadFile(d).GetName();
+															 } catch (Exception ex) {
+											Console.Error.WriteLine(ex);
+																 return null;
+															 }})
+														 .Where(n => n != null)
+														 .GroupBy(a => a.Name)
+														 .Select(a => new AssemblyBinding() {
+										Name = new AssemblyId() {
+											Name = a.Key,
+											PublicKey = a.First().GetPublicKeyToken() == null ? null : BitConverter.ToString(a.First().GetPublicKeyToken()).Replace("-", "").ToLower(),
+											Culture = a.First().CultureName
+										},
+										CodeBases = a.GroupBy(n => n.Version).Select(g => g.First()).Select(n => new AssemblyCodeBase() {
+											Version = n.Version.ToString(),
+											Url = n.CodeBase
+										}).ToList()
+								}).ToList()
+							},
+							Config = File.Exists(realConfigFile) ? new RuntimeConfiguration() {
+								Assemblies = new List<AssemblyBinding>(new [] {
+									new AssemblyBinding() {
+										LinkedUrl = realConfigFile
+									}
+								})
+							} : null
+						};
+						XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+						ns.Add("", "");
+						using (Stream stream = File.OpenWrite(configFile)) {
+							serializer.Serialize(stream, config, ns);
+						}
+					}
 				}
 			}
 		}

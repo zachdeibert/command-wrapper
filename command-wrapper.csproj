@@ -59,6 +59,16 @@
     <Compile Include="Model\NuGetMetaData.cs" />
     <Compile Include="Model\NuGetDependency.cs" />
     <Compile Include="PatchedXmlTextReader.cs" />
+    <Compile Include="Model\ConfigurationSectionGroup.cs" />
+    <Compile Include="Model\ConfigurationSection.cs" />
+    <Compile Include="Model\ApplicationSettings.cs" />
+    <Compile Include="Model\WrapperSettings.cs" />
+    <Compile Include="Model\ApplicationSetting.cs" />
+    <Compile Include="Model\ApplicationConfiguration.cs" />
+    <Compile Include="Model\RuntimeConfiguration.cs" />
+    <Compile Include="Model\AssemblyBinding.cs" />
+    <Compile Include="Model\AssemblyCodeBase.cs" />
+    <Compile Include="Model\AssemblyId.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

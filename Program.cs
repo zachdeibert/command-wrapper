@@ -22,8 +22,8 @@ namespace Com.GitHub.ZachDeibert.CommandWrapper {
 					psi.EnvironmentVariables[parts[0]] = parts[1];
 				}
 			}
-			// Parse the command
-			psi.Arguments = args.Skip(i + 2).DefaultIfEmpty().Aggregate((a, b) => string.Concat(a, " ", b));
+            // Parse the command
+            psi.Arguments = args.Skip(i + 2).DefaultIfEmpty().Aggregate("", (a, b) => string.Concat(a, " \"", b.Replace("\\", "\\\\"), "\"")).Substring(1);
 			psi.FileName = args[i + 1];
 			psi.RedirectStandardError = false;
 			psi.RedirectStandardInput = false;

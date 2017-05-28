@@ -106,7 +106,29 @@ namespace Com.GitHub.ZachDeibert.CommandWrapper {
 				} else {
 					HashSet<string> dependencies = new HashSet<string>();
 					string packagesDir = Path.GetDirectoryName(dir);
-					string packageId = Path.GetFileName(dir);
+                    switch (Environment.OSVersion.Platform) {
+                        case PlatformID.MacOSX:
+                        case PlatformID.Unix:
+                            break;
+                        default:
+                            // Fix: The private assembly was located outside the appbase directory.
+                            string junction = Path.Combine(Path.GetDirectoryName(psi.FileName), ".packages");
+                            if (!Directory.Exists(junction)) {
+                                ProcessStartInfo p = new ProcessStartInfo();
+                                p.Arguments = string.Concat("/c mklink /J \"", junction.Replace("\\", "\\\\"), "\" \"", packagesDir.Replace("\\", "\\\\"), "\"");
+                                p.FileName = "cmd.exe";
+                                p.UseShellExecute = false;
+                                p.Verb = "RunAs";
+                                Process proc = System.Diagnostics.Process.Start(p);
+                                proc.WaitForExit();
+                                if (proc.ExitCode != 0) {
+                                    break;
+                                }
+                            }
+                            packagesDir = junction;
+                            break;
+                    }
+                    string packageId = Path.GetFileName(dir);
 					BuildDependencyTree(packagesDir, packageId, dependencies);
 					dependencies.Remove(packageId);
 					IEnumerable<string> newPath = dependencies.SelectMany(p => FindDlls(Path.Combine(packagesDir, p))
@@ -171,34 +193,38 @@ namespace Com.GitHub.ZachDeibert.CommandWrapper {
 								}
 							},
 							Runtime = new RuntimeConfiguration() {
-								Assemblies = dependencies.SelectMany(p => FindDlls(Path.Combine(packagesDir, p)))
-														 .Select(d => {
-															 try {
-																 return Assembly.LoadFile(d).GetName();
-															 } catch (Exception ex) {
-											Console.Error.WriteLine(ex);
-																 return null;
-															 }})
-														 .Where(n => n != null)
-														 .GroupBy(a => a.Name)
-														 .Select(a => new AssemblyBinding() {
-										Name = new AssemblyId() {
-											Name = a.Key,
-											PublicKey = a.First().GetPublicKeyToken() == null ? null : BitConverter.ToString(a.First().GetPublicKeyToken()).Replace("-", "").ToLower(),
-											Culture = a.First().CultureName
-										},
-										CodeBases = a.GroupBy(n => n.Version).Select(g => g.First()).Select(n => new AssemblyCodeBase() {
-											Version = n.Version.ToString(),
-											Url = n.CodeBase
-										}).ToList()
-								}).ToList()
+								Bindings = new AssemblyBindings() {
+                                    Assemblies = dependencies.SelectMany(p => FindDlls(Path.Combine(packagesDir, p)))
+														     .Select(d => {
+															     try {
+																     return Assembly.LoadFile(d).GetName();
+															     } catch (Exception ex) {
+											    Console.Error.WriteLine(ex);
+																     return null;
+															     }})
+														     .Where(n => n != null)
+														     .GroupBy(a => a.Name)
+														     .Select(a => new AssemblyBinding() {
+										    Name = new AssemblyId() {
+											    Name = a.Key,
+											    PublicKey = a.First().GetPublicKeyToken() == null ? null : BitConverter.ToString(a.First().GetPublicKeyToken()).Replace("-", "").ToLower(),
+											    Culture = string.IsNullOrEmpty(a.First().CultureName) ? "neutral" : a.First().CultureName
+										    },
+										    CodeBases = a.GroupBy(n => n.Version).Select(g => g.First()).Select(n => new AssemblyCodeBase() {
+											    Version = n.Version.ToString(),
+											    Url = n.CodeBase
+										    }).ToList()
+								    }).ToList()
+                                }
 							},
 							Config = File.Exists(realConfigFile) ? new RuntimeConfiguration() {
-								Assemblies = new List<AssemblyBinding>(new [] {
-									new AssemblyBinding() {
-										LinkedUrl = realConfigFile
-									}
-								})
+                                Bindings = new AssemblyBindings() {
+                                    Assemblies = new List<AssemblyBinding>(new[] {
+                                        new AssemblyBinding() {
+                                            LinkedUrl = realConfigFile
+                                        }
+                                    })
+                                }
 							} : null
 						};
 						XmlSerializerNamespaces ns = new XmlSerializerNamespaces();

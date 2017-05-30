@@ -37,7 +37,7 @@ namespace Com.GitHub.ZachDeibert.CommandWrapper {
 				} catch ( IOException ) {
 				}
 				bool needSave = false;
-				string[] args = psi.Arguments.Split(' ');
+				string[] args = CommandTask.SplitCommandLine(psi.Arguments);
 				foreach ( int arg in psi.EnvironmentVariables["WRAPPER_ASK"].Split(',').Select(s => int.Parse(s)) ) {
 					string msg = args[arg].Replace("__", " ");
 					if ( remembered.ContainsKey(msg) ) {
